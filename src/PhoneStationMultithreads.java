@@ -22,7 +22,7 @@ public class PhoneStationMultithreads implements Runnable {
                 }while (counter < 20); // Until 20 people talked
                 printStation();
                 System.out.println(counter + "People talked");
-                System.out.println("Press enter for exit!");
+                System.out.println("Press enter for exit!"); // Exit
                 new Scanner(System.in).nextLine();
             }
         }).start();
@@ -42,8 +42,8 @@ public class PhoneStationMultithreads implements Runnable {
     private void getOp() throws InterruptedException{
         if(Op.tryAcquire()){
             Thread.sleep((long)(Math.random() * 1000)); // Communicate operator
-            waiting_op--;
-            waiting_line++;
+            waiting_op--; // Decrease waiting operator queue
+            waiting_line++; // Increase waiting line queue
             getLine();
         }else{
             Thread.sleep((long) (Math.random() * 1000)); // Communicate operator
@@ -53,30 +53,31 @@ public class PhoneStationMultithreads implements Runnable {
 
 
     private synchronized void getLine() throws InterruptedException{
-        if(!Line.tryAcquire()){
+        if(!Line.tryAcquire()){ // Try get line semaphore
             wait();
         }
         Thread.sleep((long) (Math.random() * 1000)); // Random talking time
         counter++; // Update counter
-        waiting_line--;
+        waiting_line--; // Decrease waiting line queue
         Line.release(); // Release line semaphore
         Op.release(); // Release operator semaphore
         notify(); // Notify threads
     }
 
 
-    private void printStation(){
-        clear_console();
-        System.out.println("Line: " + Line.availablePermits());
-        System.out.println("Operators: " + Op.availablePermits());
-        System.out.println("Waiting_Line: " + waiting_line);
-        System.out.println("Waiting_op: " + waiting_op);
-        System.out.println("==============================================");
+    private void printStation(){ // Print current status
+        clear_console(); // clear console
+
+        System.out.println("|Line:         " + Line.availablePermits() + "                            |");
+        System.out.println(" |Operators:    " + Op.availablePermits() + "                            |");
+        System.out.println(" |Waiting_Line: " + waiting_line + "                            |");
+        System.out.println(" |Waiting_op:   " + waiting_op + "                           |");
+        System.out.println(" =============================================");
     }
 
 
     private static void clear_console() {
-        //clear console
+        //clear console for different operating systems
         try {
             if (System.getProperty("os.name").contains("Windows")) {
                 new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
